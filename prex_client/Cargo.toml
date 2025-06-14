@@ -1,0 +1,7 @@
+[package]
+name = "prex_client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prex_core = { path = "../prex_core" }
