@@ -74,6 +74,7 @@ main (void)
           {
             if (data.as.daemon.off)
               {
+                puts ("Daemon is shutting down...");
                 running = false;
               }
           }
@@ -91,6 +92,7 @@ main (void)
             valid = true;
 
             argv[0] = strdup (data.as.exec.name);
+            arena_append (&argv_arena, argv[0]);
             for (i = 0; i < data.as.exec.argc; i++)
               {
                 Command arg;
@@ -106,6 +108,7 @@ main (void)
                   }
 
                 argv[i + 1] = strdup (arg.as.arg.arg);
+                arena_append (&argv_arena, argv[i + 1]);
               }
 
             if (valid)
