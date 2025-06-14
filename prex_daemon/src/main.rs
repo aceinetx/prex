@@ -1,6 +1,5 @@
-use std::os::unix::net::{UnixListener, UnixStream};
 use std::io::{Read, Write};
-use std::path::Path;
+use std::os::unix::net::UnixListener;
 
 fn main() -> std::io::Result<()> {
     let socket_path = "/tmp/prex.sock";
@@ -16,9 +15,12 @@ fn main() -> std::io::Result<()> {
             Ok(mut stream) => {
                 println!("Client connected");
 
-                let mut buffer = [0; 1024];
+                let mut buffer = [0; prex_core::PACKET_LEN];
                 let bytes_read = stream.read(&mut buffer)?;
-                println!("Received: {}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                println!(
+                    "Received: {}",
+                    String::from_utf8_lossy(&buffer[..bytes_read])
+                );
 
                 stream.write_all(b"Hello from server!")?;
             }
