@@ -4,13 +4,16 @@
 #include "core.h"
 
 #define SOCKET_PATH "/tmp/prex.socket"
+#define EXE_LEN 128
+#define ARG_LEN 128
 
 typedef struct
 {
   enum
   {
     CMD_DAEMON,
-    CMD_EXEC
+    CMD_EXEC,
+    CMD_ARG
   } type;
 
   union
@@ -19,6 +22,17 @@ typedef struct
     {
       bool off;
     } daemon;
+
+    struct
+    {
+      char name[EXE_LEN];
+      unsigned int argc;
+    } exec;
+
+    struct
+    {
+      char arg[ARG_LEN];
+    } arg;
   } as;
 } Command;
 

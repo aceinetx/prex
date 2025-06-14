@@ -42,6 +42,9 @@ main (int argc, char **argv)
         data.type = CMD_DAEMON;
         data.as.daemon.off = true;
       }
+    else if (streq (cmd, "exec"))
+      {
+      }
     else
       {
         printf ("unknown command: %s\n", cmd);
