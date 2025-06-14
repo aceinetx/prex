@@ -19,6 +19,8 @@ int
 main (int argc, char **argv)
 {
   Command data;
+  int argc_orig;
+  char **argv_orig;
 
   if (argc < 3)
     {
@@ -27,6 +29,9 @@ main (int argc, char **argv)
       puts ("            exec      name [exec args...]");
       return 1;
     }
+
+  argc_orig = argc;
+  argv_orig = argv;
 
   args_shift (&argc, &argv);
   {
@@ -44,6 +49,9 @@ main (int argc, char **argv)
       }
     else if (streq (cmd, "exec"))
       {
+        data.type = CMD_EXEC;
+        data.as.exec.argc = argc_orig - 3;
+        strncpy (data.as.exec.name, args_shift (&argc, &argv), EXE_LEN);
       }
     else
       {
@@ -51,6 +59,9 @@ main (int argc, char **argv)
         return 1;
       }
   }
+
+  argc = argc_orig;
+  argv = argv_orig;
 
   {
     int sock_fd;
@@ -79,6 +90,19 @@ main (int argc, char **argv)
 
     /* send data to the server */
     write (sock_fd, &data, CMD_LEN);
+
+    if (data.type == CMD_EXEC)
+      {
+        int i;
+        for (i = 3; i < argc; i++)
+          {
+            Command arg;
+            arg.type = CMD_ARG;
+            strncpy (arg.as.arg.arg, argv[i], ARG_LEN);
+
+            write (sock_fd, &arg, CMD_LEN);
+          }
+      }
 
     /* clean up */
     close (sock_fd);

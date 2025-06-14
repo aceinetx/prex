@@ -1,3 +1,5 @@
+#include "arena.h"
+#include "exec.h"
 #include "socket.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,9 +8,12 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+Arena argv_arena;
+
 int
 main (void)
 {
+  argv_arena = arena_new ();
   {
     bool running;
     int server_fd, client_fd;
@@ -65,18 +70,55 @@ main (void)
         read (client_fd, &data, CMD_LEN);
         puts ("Command recieved");
 
-        switch (data.type)
+        if (data.type == CMD_DAEMON)
           {
-          case CMD_DAEMON:
             if (data.as.daemon.off)
               {
                 running = false;
               }
-            break;
-          default:
+          }
+        else if (data.type == CMD_EXEC)
+          {
+            int i;
+            bool valid;
+            size_t size
+                = sizeof (char *)
+                  * (data.as.exec.argc
+                     + 2 /* one for a null terminator, one for exe name */);
+            char **argv = malloc (size);
+            memset (argv, 0, size);
+
+            valid = true;
+
+            argv[0] = strdup (data.as.exec.name);
+            for (i = 0; i < data.as.exec.argc; i++)
+              {
+                Command arg;
+                read (client_fd, &arg, CMD_LEN);
+
+                if (arg.type != CMD_ARG)
+                  {
+                    printf ("Got an invalid command of ID %u (expected "
+                            "CMD_ARG, or %u)\n",
+                            (unsigned int)data.type, (unsigned int)CMD_ARG);
+                    valid = false;
+                    break;
+                  }
+
+                argv[i + 1] = strdup (arg.as.arg.arg);
+              }
+
+            if (valid)
+              {
+                arena_append (&argv_arena, argv);
+
+                prex_exec (argv);
+              }
+          }
+        else
+          {
             printf ("Got an invalid command of ID %u\n",
                     (unsigned int)data.type);
-            break;
           }
       }
 
@@ -85,5 +127,6 @@ main (void)
     close (server_fd);
     unlink (SOCKET_PATH);
   }
+  arena_free (&argv_arena);
   return 0;
 }

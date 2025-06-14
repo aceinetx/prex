@@ -26,7 +26,7 @@ typedef struct
     struct
     {
       char name[EXE_LEN];
-      unsigned int argc;
+      int argc;
     } exec;
 
     struct
