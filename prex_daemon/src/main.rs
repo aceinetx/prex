@@ -4,13 +4,11 @@ use std::os::unix::net::UnixListener;
 use std::process::Command;
 
 fn main() -> std::io::Result<()> {
-    let socket_path = "/tmp/prex.sock";
+    let _ = std::fs::remove_file(prex_core::SOCKET_PATH);
 
-    let _ = std::fs::remove_file(socket_path);
+    let listener = UnixListener::bind(prex_core::SOCKET_PATH)?;
 
-    let listener = UnixListener::bind(socket_path)?;
-
-    println!("Daemon is running on {}", socket_path);
+    println!("Daemon is running on {}", prex_core::SOCKET_PATH);
 
     for stream in listener.incoming() {
         match stream {
