@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 prex_core = { path = "../prex_core" }
+serde_json = "1.0"
