@@ -2,6 +2,7 @@ use serde_json::Value;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixListener;
 use std::process::Command;
+use std::thread;
 
 fn main() -> std::io::Result<()> {
     let _ = std::fs::remove_file(prex_core::SOCKET_PATH);
@@ -71,8 +72,14 @@ fn main() -> std::io::Result<()> {
                                             stream.write_all(&(0 as i32).to_ne_bytes())?;
                                         } else {
                                             // Send back the child's PID
-                                            let child = child_res.ok().unwrap();
+                                            let mut child = child_res.ok().unwrap();
                                             stream.write_all(&child.id().to_ne_bytes())?;
+
+                                            let child_id = child.id();
+                                            thread::spawn(move || {
+                                                let _ = child.wait();
+                                                println!("Child process {} has exited", child_id);
+                                            });
                                         }
                                     }
                                 }
