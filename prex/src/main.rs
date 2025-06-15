@@ -5,7 +5,7 @@ use std::os::unix::net::UnixStream;
 fn print_usage() {
     println!("usage: prex [command] (args)");
     println!("            shutdown");
-    println!("            exec      [args...]");
+    println!("            exec      [name] (args...)");
 }
 
 fn print_usage_exit() {
