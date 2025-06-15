@@ -1,6 +1,5 @@
 use serde_json::{Map, Value};
 
-pub const PACKET_LEN: usize = 2048;
 pub const SOCKET_PATH: &str = "/tmp/prex.sock";
 
 pub const PACKET_SHUTDOWN: i8 = 1;
