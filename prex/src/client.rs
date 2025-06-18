@@ -36,6 +36,7 @@ impl Client {
             stream.read(&mut buffer).unwrap();
             let pid = i32::from_ne_bytes(buffer);
             if pid == 0 {
+                // TODO: maybe make the server respond with an error?
                 return Err(
                     "pid == 0 (no such executable? if you have access to the daemon's stderr, you should check out the error)",
                 );
