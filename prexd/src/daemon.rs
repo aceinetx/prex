@@ -99,20 +99,21 @@ impl Daemon {
         self.listen = true;
         println!("Daemon is running on {}", prex_core::SOCKET_PATH);
 
-        let listener = self.listener.try_clone().unwrap();
-        for stream in listener.incoming() {
-            match stream {
-                Ok(mut stream) => {
+        while self.listen {
+            match self.listener.accept() {
+                Ok((mut stream, _addr)) => {
                     self.process_packet(&mut stream);
+                }
+                Err(e)
+                    if e.kind() == std::io::ErrorKind::WouldBlock
+                        || e.kind() == std::io::ErrorKind::TimedOut =>
+                {
+                    // Timeout occurred, just loop again to check self.listen
                 }
                 Err(e) => {
                     eprintln!("Error accepting connection: {}", e);
                 }
             }
-
-            if !self.listen {
-                break;
-            };
         }
     }
 }
