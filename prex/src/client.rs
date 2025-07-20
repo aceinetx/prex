@@ -9,14 +9,19 @@ impl Client {
     }
 
     pub fn send_shutdown(&self) {
-        let mut stream = UnixStream::connect(prex_core::SOCKET_PATH).unwrap();
+        match &mut UnixStream::connect(prex_core::SOCKET_PATH) {
+            Ok(stream) => {
+                let packet = prex_core::construct_shutdown_packet();
+                stream
+                    .write_all(&(packet.len() as i32).to_ne_bytes())
+                    .unwrap();
 
-        let packet = prex_core::construct_shutdown_packet();
-        stream
-            .write_all(&(packet.len() as i32).to_ne_bytes())
-            .unwrap();
-
-        stream.write_all(packet.as_bytes()).unwrap();
+                stream.write_all(packet.as_bytes()).unwrap();
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+            }
+        }
 
         // TODO: maybe implement some mechanism that returns an error (if we would even have it)
     }
