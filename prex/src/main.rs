@@ -1,10 +1,12 @@
 pub mod client;
 
-use std::env;
+use serde_json::Value;
+use std::{env, io};
 
 fn print_usage() {
     println!("usage: prex [command] (args)");
     println!("            shutdown");
+    println!("            info");
     println!("            exec      [name] (args...)");
 }
 
@@ -13,7 +15,7 @@ fn print_usage_exit() {
     std::process::exit(1);
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> io::Result<()> {
     let client = client::Client::new();
 
     let args: Vec<String> = env::args().collect();
@@ -23,6 +25,30 @@ fn main() -> std::io::Result<()> {
 
     if args[1] == "shutdown" {
         client.send_shutdown();
+    } else if args[1] == "info" {
+        let info = client.send_info();
+        if info == Value::Null {
+            return Err(io::Error::new(io::ErrorKind::Other, "Failed to get info"));
+        }
+
+        let obj = info.as_object();
+        match obj {
+            Some(info_map) => {
+                println!("prex daemon info:");
+                if let Some(pid_o) = info_map.get("pid") {
+                    if let Some(pid) = pid_o.as_number() {
+                        println!("pid: {}", pid);
+                    }
+                }
+            }
+
+            None => {
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "Recieved info is probably not an object",
+                ));
+            }
+        };
     } else if args[1] == "exec" {
         if args.len() < 3 {
             print_usage_exit();
